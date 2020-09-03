@@ -4,7 +4,6 @@
     .areas{
         padding: 0 16px;
 
-        font-weight: 100;
 
         .form{
             >*{
@@ -23,11 +22,24 @@
 
         .item{
             min-width: 150px;
+            padding: 8px 0;
+
             display: flex;
             justify-content: space-between;
 
-            padding: 8px 0;
+            font-weight: 300;
+            color: gray;
+            cursor: pointer;
 
+            &:hover{
+                color: black;
+            }
+
+            &.active{
+                font-weight: bold;
+                cursor: default;
+                color: black;
+            }
         }
     }
 

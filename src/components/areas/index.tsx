@@ -1,21 +1,13 @@
 import React, {Component} from "react";
 import {Maps} from "../map";
 import "./areas.scss";
-import {divIcon} from "leaflet";
 import {Form} from "./form";
+import {Area, LatLng} from "../types";
 
-interface LatLng{
-    lat: number;
-    lng: number;
-}
-interface Area {
-    name: string;
-    shippingFee: number;
-    polygon: LatLng[];
-}
 
 const myAreas: Area[] = [
     {
+        id: 1,
         name: 'Vila Mariana',
         shippingFee: 13,
         polygon: [
@@ -31,29 +23,68 @@ const myAreas: Area[] = [
     }
 ];
 
-export class Areas extends Component{
+interface StateAreas {
+    lstAreas: Area[];
+    selectedArea: Area | undefined;
+}
 
-    render = () => (
+export class Areas extends Component<{},StateAreas>{
+    state = {
+        lstAreas: [...myAreas],
+        selectedArea: undefined
+    };
+
+    private addArea = (area: Area) => {
+        const {lstAreas} = this.state;
+
+        const newId = Math.max(...lstAreas.map(x => x.id as number)) + 1;
+        area.id = newId;
+        const newAreas = [...lstAreas, area];
+        this.setState({selectedArea: area, lstAreas: newAreas});
+    };
+
+    public render = () => (
         <div className="area">
-            <Maps/>
+            <Maps areas={this.state.lstAreas} editingArea={this.state.selectedArea} onChangeArea={this.handleChangeArea}/>
             {this.renderListAreas()}
         </div>
     );
 
-    renderListAreas = () => (
+    private handleChangeArea = (polygon: LatLng[]) => {
+        const {selectedArea, lstAreas} = this.state;
+
+        if(!selectedArea)
+            return;
+
+        const editedArea = selectedArea || {} as Area;
+        editedArea.polygon = polygon;
+
+        const newLstAreas = [...lstAreas.filter(x => editedArea?.id !== x.id), editedArea];
+
+        this.setState({selectedArea: undefined, lstAreas: newLstAreas})
+    };
+
+    private renderListAreas = () => (
         <div className="areas">
             <h5>Registered Areas</h5>
-            <Form />
+            <Form onAdd={this.addArea} />
             <div className="listAreas">
-                {myAreas.map(this.renderArea)}
+                {this.state.lstAreas.map(this.renderArea)}
             </div>
         </div>
     );
 
-    renderArea = (area: Area) => (
-        <div className="item">
-            <span>{area.name}</span>
-            <span>{area.shippingFee}</span>
-        </div>
-    );
+    private renderArea = (area: Area, index: number) => {
+        const styleActive = this.state.selectedArea === area ? 'active' : '';
+        return (
+            <div className={`item ${styleActive}`} onClick={() => this.selectArea(area)} key={index}>
+                <span>{area.name}</span>
+                <span>{area.shippingFee}</span>
+            </div>
+        );
+    };
+
+    private selectArea = (area: Area) => {
+        this.setState({selectedArea: area});
+    }
 }
