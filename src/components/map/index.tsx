@@ -53,6 +53,7 @@ export class Maps extends Component<PropsMaps>{
             .map(area => new L.Polygon(area.polygon).addTo(this.myMap as Map));
     };
 
+    //todo correct bug when change from one area to another
     private openUpEditor = () => {
         if(!this.myMap || !this.props.editingArea)
             return;
