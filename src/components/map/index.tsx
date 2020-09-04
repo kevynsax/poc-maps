@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import L, {Layer, LeafletEvent, Map, Polygon} from "leaflet";
+import L, {Control, Layer, LayerGroup, LeafletEvent, Map, Polygon} from "leaflet";
 import 'leaflet-draw'
 import './maps.scss';
 import {Area, LatLng} from "../types";
@@ -14,6 +14,9 @@ interface PropsMaps {
 export class Maps extends Component<PropsMaps>{
     myMap: Map | undefined;
     polygons: Polygon[] = [];
+
+    drawnItems: LayerGroup | undefined;
+    drawControl: any;
 
     componentDidMount(): void {
         this.createMap();
@@ -53,14 +56,23 @@ export class Maps extends Component<PropsMaps>{
             .map(area => new L.Polygon(area.polygon).addTo(this.myMap as Map));
     };
 
-    //todo correct bug when change from one area to another
     private openUpEditor = () => {
+        const clear = () => {
+            if(!this.drawControl || !this.drawnItems)
+                return;
+
+            this.myMap?.removeControl(this.drawControl);
+            this.myMap?.removeLayer(this.drawnItems as Layer);
+        };
+
+        clear();
+
         if(!this.myMap || !this.props.editingArea)
             return;
 
-        const drawnItems = new L.FeatureGroup([new L.Polygon(this.props.editingArea.polygon)]);
-        this.myMap.addLayer(drawnItems);
-        const drawControl = new L.Control.Draw({
+        this.drawnItems = new L.FeatureGroup([new L.Polygon(this.props.editingArea.polygon)]);
+        this.myMap.addLayer(this.drawnItems);
+        this.drawControl = new L.Control.Draw({
             draw: {
                 polygon: false,
                 circle: false,
@@ -69,23 +81,21 @@ export class Maps extends Component<PropsMaps>{
                 rectangle: false
             },
             edit: {
-                featureGroup: drawnItems
+                featureGroup: this.drawnItems as any
             }
         });
-        this.myMap.addControl(drawControl);
+        this.myMap.addControl(this.drawControl);
 
         const updatePolygon = (polygon: LatLng[]) => {
             this.props.onChangeArea(polygon);
-
-            this.myMap?.removeControl(drawControl);
-            this.myMap?.removeLayer(drawnItems);
+            clear();
         };
 
         this.myMap.on(L.Draw.Event.CREATED, (e) => {
             const layer = e.layer;
 
-            drawnItems.clearLayers();
-            drawnItems.addLayer(layer);
+            this.drawnItems?.clearLayers();
+            this.drawnItems?.addLayer(layer);
 
             const polygon = layer.editing.latlngs[0];
             updatePolygon(polygon);
