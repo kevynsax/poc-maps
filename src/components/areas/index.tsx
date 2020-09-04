@@ -76,6 +76,7 @@ export class Areas extends Component<{}, StateAreas> {
     public render = () => (
         <div className="area">
             <Maps areas={this.state.lstAreas} editingArea={this.state.selectedArea}
+                  orders={lstOrders}
                   onChangeArea={this.handleChangeArea}/>
             {this.renderListAreas()}
         </div>

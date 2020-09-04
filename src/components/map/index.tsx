@@ -3,11 +3,14 @@ import L, {Control, Layer, LayerGroup, LeafletEvent, Map, Polygon} from "leaflet
 import 'leaflet-draw'
 import './maps.scss';
 import {Area, LatLng} from "../types";
+import 'leaflet.heat';
 
 interface PropsMaps {
+    orders: LatLng[];
+
     areas: Area[];
     editingArea: Area | undefined;
-    onChangeArea: (polygon: LatLng[]) => void
+    onChangeArea: (polygon: LatLng[]) => void;
 }
 
 
@@ -30,6 +33,7 @@ export class Maps extends Component<PropsMaps>{
     private initializeLayersMap = () => {
         this.createAreas();
         this.openUpEditor();
+        this.createHeatMapOrders();
     };
 
     render = () => <div id="mapId" style={{height: '320px', width: '600px'}}/>
@@ -54,6 +58,14 @@ export class Maps extends Component<PropsMaps>{
 
         this.polygons = this.props.areas
             .map(area => new L.Polygon(area.polygon).addTo(this.myMap as Map));
+    };
+
+    private createHeatMapOrders = () => {
+        if(!this.myMap || !this.props.orders)
+            return;
+
+        L.heatLayer(this.props.orders.map(x => [x.lat, x.lng, 50]), {radius: 10})
+            .addTo(this.myMap)
     };
 
     private openUpEditor = () => {
