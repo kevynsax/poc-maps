@@ -100,6 +100,7 @@ export class Maps extends Component<PropsMaps>{
 
         const updatePolygon = (polygon: LatLng[]) => {
             this.props.onChangeArea(polygon);
+            console.log(`this is the polygon`, polygon);
             clear();
         };
 
